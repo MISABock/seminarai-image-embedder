@@ -21,3 +21,9 @@ models/
 __pycache__/
 *.pyc
 .setup-complete.json
+
+# Everything Computer C needs at runtime lives inside the repo folder (outside a sandbox's view
+# otherwise): uv-managed Python, uv cache, Hugging Face cache, logs
+.uv/
+.hf-cache/
+*.log
