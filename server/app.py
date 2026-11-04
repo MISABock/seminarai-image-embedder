@@ -29,6 +29,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from PIL import Image
 from pydantic import BaseModel
 
+from . import setup_state
 from .embedder import (
     DEFAULT_INSTRUCTION,
     MAX_PIXELS,
@@ -95,7 +96,9 @@ async def lifespan(_app: FastAPI):
         log.warning("EMBED_FAKE=1: random vectors, no model. Only for testing the connection.")
         state.embedder = FakeEmbedder(state.cfg)
     else:
+        setup_state.check(state.cfg)  # step 2 only after a passed step 1 with these settings
         state.embedder = QwenVLEmbedder(state.cfg)
+        log.info("READY: Schritt 2 laeuft, Bilder koennen jetzt vom PC gesendet werden.")
     yield
 
 

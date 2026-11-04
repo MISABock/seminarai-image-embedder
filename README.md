@@ -16,6 +16,11 @@ C:\AI_Seminar_Images\embeddings\      ◄── Vektoren (1024 Zahlen) ─┘
   Parquet-Dateien. Bricht etwas ab, startest du denselben Befehl einfach noch einmal: Fertige
   Bilder werden übersprungen.
 
+Auf Computer C gibt es **zwei getrennte Schritte**:
+1. **Einrichten** (C1–C7): installieren, einstellen, Modell mit selbst erzeugten Testbildern
+   prüfen. Endet mit der Meldung „EINRICHTUNG ABGESCHLOSSEN“. Keine echten Bilder.
+2. **Embedden** (C8): erst auf Ansage. Der Server startet nur, wenn Schritt 1 bestanden wurde.
+
 Für Claude Code auf beiden Rechnern gibt es eine Schritt-für-Schritt-Anleitung in `CLAUDE.md`.
 
 ---
@@ -43,7 +48,8 @@ cd seminarai-image-embedder
 ```
 
 Danach in diesem Ordner Claude Code starten und sagen: *„Richte nach CLAUDE.md den
-Embedding-Dienst auf diesem Rechner ein.“*
+Embedding-Dienst auf diesem Rechner ein.“* Claude macht dann nur **Schritt 1** (C3–C7) und meldet
+sich mit „EINRICHTUNG ABGESCHLOSSEN“. Embeddet wird erst, wenn du sagst: *„Wir embedden jetzt.“*
 
 **C3 – Python und PyTorch für RTX 50 (CUDA 12.8)**
 
@@ -85,31 +91,39 @@ New-NetFirewallRule -DisplayName "SeminarAI Embedder (Tailscale)" -Direction Inb
 
 Damit erreichen nur Geräte aus dem Tailscale-Netz den Dienst.
 
-**C7 – Testmodus (ohne Modell)**
+**C7 – Schritt 1 abschließen: Selbsttest**
 
-In `.env` `EMBED_FAKE=1` setzen und starten (`<TAILSCALE-IP>` aus Schritt C1):
+```powershell
+.venv\Scripts\python -m server.selftest
+```
+
+Prüft Umgebung, Grafikkarte, Tailscale und Firewall, lädt das Modell (beim ersten Mal ca. 17 GB
+Download nach `HF_HOME`) und testet es mit **selbst erzeugten** Bildern. Es werden keine echten
+Bilder verarbeitet und kein Server gestartet. Am Ende steht ein Kasten:
+
+```
+======================================================================
+  EINRICHTUNG ABGESCHLOSSEN - Computer C ist bereit
+======================================================================
+  GPU:            NVIDIA GeForce RTX 50xx (16.0 GB)
+  Modell:         Qwen/Qwen3-VL-Embedding-8B@int8, 1024 Dimensionen
+  VRAM (Spitze):  …
+  Tempo (Test):   … s/Bild, ca. … h für alle
+  Adresse:        http://100.x.y.z:8080
+  Es wurden KEINE echten Bilder verarbeitet, der Server läuft NICHT.
+```
+
+Nur dann wird `.setup-complete.json` geschrieben. Ohne diese Datei, oder wenn sich danach eine
+Einstellung ändert, die die Vektoren beeinflusst, startet der Server nicht.
+
+**C8 – Schritt 2: Server starten (erst wenn embeddet wird)**
 
 ```powershell
 .venv\Scripts\python -m uvicorn server.app:app --env-file .env --host <TAILSCALE-IP> --port 8080
 ```
 
-Dann vom PC aus `client/check_server.py` ausführen (siehe Teil P). Klappt das, stimmen Tailscale,
-Firewall und Schlüssel.
-
-**C8 – Echtbetrieb**
-
-In `.env` `EMBED_FAKE=0` setzen und mit demselben Befehl wie in C7 starten. Beim ersten Start
-werden ca. 17 GB von Hugging Face nach `HF_HOME` geladen. Danach dauert ein Start 1–2 Minuten.
-Im Log muss `model ready … GB VRAM in use` stehen.
-
-Prüfen, direkt auf Computer C in einem zweiten Fenster:
-
-```powershell
-$env:EMBED_API_KEY = "<schlüssel>"
-.venv\Scripts\python client\check_server.py --server http://<TAILSCALE-IP>:8080
-```
-
-Am Ende muss `OK: the matching text is closer …` stehen.
+Nach 1–2 Minuten steht im Log `READY: Schritt 2 laeuft`. Dann auf dem PC Teil P3/P4 ausführen.
+Beenden mit `Strg+C`.
 
 **C9 – Wach bleiben**
 

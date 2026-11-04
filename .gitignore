@@ -20,3 +20,4 @@ models/
 .venv/
 __pycache__/
 *.pyc
+.setup-complete.json

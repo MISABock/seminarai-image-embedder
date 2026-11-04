@@ -47,37 +47,69 @@ auf Computer C verarbeiten.
    ohne GPU nur im Testmodus geprüft; das echte Laden des Modells läuft auf Computer C zum
    ersten Mal.
 
-## Ablauf auf Computer C
+## Computer C: zwei Schritte, niemals vermischen
 
 Finde zuerst heraus, ob du auf Computer C bist: `nvidia-smi` zeigt eine RTX 50xx mit ~16 GB.
 
-| Schritt | Tun (README) | Prüfen |
+### Schritt 1: Einrichten (gleich nach dem Klonen)
+
+Ziel: alles installiert, eingestellt und getestet. **Keine echten Bilder, kein laufender
+Server.** Startet dich der Nutzer nach dem Klonen („Richte … ein“ o. ä.), machst du nur das hier.
+
+| # | Tun (README) | Prüfen |
 |---|---|---|
 | 1 | C1: `nvidia-smi`, `tailscale ip -4`, `git`, `uv` | GPU mit ~16 GB sichtbar; Tailscale-IP `100.x.y.z` notieren |
 | 2 | C3: venv + `torch==2.8.0`/`torchvision==0.23.0` aus **cu128** | `torch.cuda.is_available()` ist `True`, Gerätename RTX 50xx |
 | 3 | C4: `uv pip install -r requirements-server.txt` | `python -c "import transformers, bitsandbytes, qwen_vl_utils"` ohne Fehler |
-| 4 | C5: `.env` aus `.env.example`, Schlüssel erzeugen | `EMBED_API_KEY` gesetzt, `EMBED_FAKE=1` für den Test |
+| 4 | C5: `.env` aus `.env.example`, Schlüssel erzeugen, `EMBED_FAKE=0` | Werte gesetzt |
 | 5 | C6: Firewall-Befehl **dem Nutzer geben** (Admin-PowerShell) | Nutzer bestätigt |
-| 6 | C7: Server im Testmodus starten (im Hintergrund) | `GET http://<IP>:8080/health` zeigt `"fake": true` |
-| 7 | Nutzer prüft vom PC aus mit `client\check_server.py` | Ausgabe `OK (fake mode …)` |
-| 8 | C8: `EMBED_FAKE=0`, Server neu starten | Log: `model ready in … s, … GB VRAM in use`; **kein** Fehler „weights missing“ |
-| 9 | `client\check_server.py` gegen den echten Server | `OK: the matching text is closer …` |
-| 10 | Nutzer startet auf dem PC `--limit 100` | `img/s` notieren, Gesamtdauer hochrechnen, dem Nutzer sagen |
+| 6 | C9: Energiesparmodus: **der Nutzer** stellt „Nie“ ein | Nutzer bestätigt |
+| 7 | C7: `.venv\Scripts\python -m server.selftest` (lädt beim ersten Mal ~17 GB) | Kasten am Ende: `EINRICHTUNG ABGESCHLOSSEN` |
 
-Wenn Schritt 8 mit „weights missing“ abbricht oder Schritt 9 `UNEXPECTED` meldet: **nichts
-embedden.** Dem Nutzer die Fehlermeldung zeigen. Wahrscheinliche Ursache: eine andere
-`transformers`-Version als 4.57.x mit anderem Modul-Layout. Dann `transformers==4.57.*` probieren.
+Der Selbsttest prüft Umgebung, GPU, Tailscale und Firewall, lädt das Modell, testet es mit selbst
+erzeugten Bildern, misst das Tempo und schreibt bei Erfolg `.setup-complete.json`. Ohne diese
+Datei startet der Server für Schritt 2 nicht.
+
+**Wenn der Kasten `EINRICHTUNG ABGESCHLOSSEN` zeigt:**
+1. Zeig dem Nutzer den Kasten (GPU, VRAM, Tempo, geschätzte Dauer, Adresse).
+2. Zeig ihm einmal den API-Schlüssel aus `.env`; er braucht ihn auf dem PC.
+3. Sag klar: „Schritt 1 ist fertig, Computer C ist bereit. Es wurden keine echten Bilder
+   verarbeitet und der Server läuft nicht. Sag mir Bescheid, wenn wir embedden.“
+4. **Dann aufhören.** Keinen Server starten, nichts weiter tun.
+
+**Wenn der Kasten `EINRICHTUNG NICHT ABGESCHLOSSEN` zeigt:** die aufgelisteten Punkte beheben
+(Fehlerbilder unten; Firewall und Energie macht der Nutzer) und den Selbsttest wiederholen.
+Meldet er „weights missing“ oder unplausible Ähnlichkeit: **anhalten**, dem Nutzer die Meldung
+zeigen. Wahrscheinliche Ursache: eine `transformers`-Version mit anderem Modul-Layout; dann
+`transformers==4.57.*` probieren und den Selbsttest wiederholen.
+
+### Schritt 2: Embedden (nur auf ausdrückliche Ansage)
+
+Erst wenn der Nutzer ausdrücklich sagt, dass jetzt embeddet wird (z. B. „Wir embedden jetzt“).
+
+1. Prüfen, dass `.setup-complete.json` existiert. Sonst zurück zu Schritt 1.
+2. Server in einem **sichtbaren** Terminal starten (README C8, mit der Tailscale-IP), damit der
+   Nutzer das Log sieht und ihn mit `Strg+C` beenden kann.
+3. Der Server prüft beim Start, dass Schritt 1 mit genau diesen Einstellungen bestanden wurde.
+   Verweigert er den Start: **nicht umgehen** (nicht `.setup-complete.json` anlegen oder
+   bearbeiten), sondern dem Nutzer den Grund nennen und nach Rückfrage Schritt 1 wiederholen.
+4. Warten, bis im Log `READY: Schritt 2 laeuft` steht.
+5. Dem Nutzer die Befehle für den PC geben, mit eingesetzter IP (README P3/P4): erst
+   `check_server.py`, dann `embed_images.py --limit 100`, dann alles.
+6. Während des Laufs das Log im Blick behalten (z. B. `CUDA out of memory`). Wenn alles fertig ist
+   und der Nutzer zustimmt: Server mit `Strg+C` beenden.
 
 ### Fehlerbilder
 
 | Meldung | Ursache / Abhilfe |
 |---|---|
-| `CUDA is not available` | Falscher PyTorch-Build (nicht cu128) oder alter Treiber; Schritt 2 wiederholen |
+| `CUDA is not available` | Falscher PyTorch-Build (nicht cu128) oder alter Treiber; Schritt 1.2 wiederholen |
 | `no kernel image is available for execution on the device` | PyTorch kennt Blackwell nicht: cu128-Build installieren |
-| `CUDA out of memory` | `EMBED_BATCH_SIZE` auf 2 oder 1; Server neu starten |
+| `CUDA out of memory` | `EMBED_BATCH_SIZE` auf 2 oder 1 (ändert die Vektoren nicht); Server bzw. Selbsttest neu starten |
 | Fehler aus `bitsandbytes` beim Laden | `uv pip install -U bitsandbytes` |
 | `cannot import name 'Qwen3VL…' from transformers` | `transformers` zu alt: `uv pip install "transformers>=4.57,<5"` |
-| PC erreicht C nicht (`check_server`: not reachable) | Server läuft? Richtige Tailscale-IP? Firewall-Regel (Schritt 5)? Beide Geräte in `tailscale status`? |
+| Server: „Einrichtung noch nicht abgeschlossen“ / „Einstellungen geändert“ | Schritt 1 (Selbsttest) wiederholen; nichts von Hand umgehen |
+| PC erreicht C nicht (`check_server`: not reachable) | Server läuft? Richtige Tailscale-IP? Firewall-Regel? Beide Geräte in `tailscale status`? |
 
 ## Ablauf auf dem PC
 
@@ -96,4 +128,5 @@ embedden.** Dem Nutzer die Fehlermeldung zeigen. Wahrscheinliche Ursache: eine a
 - Schnittstelle `POST /embed` wie im SeminarAI-Projekt (`embedder/embedder/server.py`):
   `{"texts", "images_b64", "is_query"}` → `{"embeddings", "model", "dim"}`. Nicht ohne Grund ändern;
   der Orchestrator des Projekts soll den Dienst später für Suchanfragen nutzen können.
-- Ohne GPU testen: `EMBED_FAKE=1` startet den Server ohne Modell (Zufallsvektoren).
+- Ohne GPU testen: `EMBED_FAKE=1` startet den Server ohne Modell (Zufallsvektoren, braucht keine
+  Einrichtung); `python -m server.selftest --fake` prüft den Ablauf des Selbsttests.

@@ -47,6 +47,18 @@ class EmbedderConfig:
         the same model loaded differently must not be mixed either."""
         return f"{self.model_id}@{self.quant}"
 
+    def fingerprint(self) -> dict:
+        """Every setting that changes the vectors (batch size does not)."""
+        return {
+            "model": self.model_tag,
+            "revision": self.revision,
+            "dim": self.dim,
+            "max_pixels": self.max_pixels,
+            "min_pixels": self.min_pixels,
+            "doc_instruction": self.doc_instruction,
+            "query_instruction": self.query_instruction,
+        }
+
 
 def _with_period(instruction: str) -> str:
     """Like the reference: strip, and end with punctuation."""
