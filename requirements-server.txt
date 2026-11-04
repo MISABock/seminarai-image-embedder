@@ -1,0 +1,11 @@
+# Computer C (Windows, NVIDIA RTX 50xx, 16 GB VRAM).
+# torch and torchvision are NOT listed here: install them first from the CUDA 12.8 index
+# (RTX 50 / Blackwell needs cu128 or newer), see README.md step C3.
+transformers>=4.57,<5        # Qwen3-VL classes; the model card was tested with 4.57
+accelerate>=1.10
+bitsandbytes>=0.46           # 8-bit loading; recent builds support Windows and Blackwell
+qwen-vl-utils>=0.0.14        # image resizing exactly like the reference implementation
+pillow>=10
+fastapi>=0.115
+uvicorn[standard]>=0.30      # [standard] brings python-dotenv for --env-file
+httpx>=0.27                  # for client/check_server.py on Computer C

@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Client data (NDA) and results: never in git
+images/
+embeddings/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.parquet
+*.parquet.tmp
+errors.csv
+
+# Model cache and Python
+hf-cache/
+models/
+.venv/
+__pycache__/
+*.pyc

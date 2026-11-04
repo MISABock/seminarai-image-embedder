@@ -1,0 +1,4 @@
+# The PC with the images (sends them to Computer C, stores the vectors).
+httpx>=0.27
+pyarrow>=17
+pillow>=10
