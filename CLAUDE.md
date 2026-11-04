@@ -41,6 +41,11 @@ auf Computer C verarbeiten.
    Modelle oder Skripte aus dem Internet ausführen.
 8. **Halte an und frag nach**, wenn ein Prüfschritt unten nicht das erwartete Ergebnis zeigt.
    Nicht mit Umwegen weitermachen, die die Vektoren verändern könnten.
+9. **Code-Änderungen zurück ins Repo:** Musst du auf Computer C etwas am Code anpassen (z. B.
+   wegen einer Bibliotheksversion), committe es mit einer klaren Nachricht und pushe es, nachdem
+   der Nutzer zugestimmt hat. So arbeiten PC und Computer C mit demselben Stand. Der Code wurde
+   ohne GPU nur im Testmodus geprüft; das echte Laden des Modells läuft auf Computer C zum
+   ersten Mal.
 
 ## Ablauf auf Computer C
 

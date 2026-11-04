@@ -198,6 +198,7 @@ class QwenVLEmbedder:
             for k in ("input_ids", "attention_mask", "pixel_values", "image_grid_thw")
             if k in inputs
         }
+        forward_args["use_cache"] = False  # one forward pass only: no KV cache, less VRAM
         with torch.inference_mode():
             hidden = self.model.model(**forward_args).last_hidden_state
             mask = inputs["attention_mask"]

@@ -33,11 +33,17 @@ uv --version        # fehlt: powershell -c "irm https://astral.sh/uv/install.ps1
 
 **C2 – Repo holen**
 
+Das Repo ist privat: Beim ersten `git clone` öffnet Git ein Browserfenster für die Anmeldung
+bei GitHub (Konto `MISABock` oder ein Konto, das Zugriff auf das Repo hat).
+
 ```powershell
 cd C:\
-git clone https://github.com/<dein-konto>/seminarai-image-embedder.git
+git clone https://github.com/MISABock/seminarai-image-embedder.git
 cd seminarai-image-embedder
 ```
+
+Danach in diesem Ordner Claude Code starten und sagen: *„Richte nach CLAUDE.md den
+Embedding-Dienst auf diesem Rechner ein.“*
 
 **C3 – Python und PyTorch für RTX 50 (CUDA 12.8)**
 
