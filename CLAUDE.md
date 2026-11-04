@@ -120,7 +120,9 @@ Erst wenn der Nutzer ausdrücklich sagt, dass jetzt embeddet wird (z. B. „Wir 
 3. README P3: `check_server.py` gegen Computer C.
 4. README P4: `--dry-run`, dann `--limit 100`, dann alles. Lange Läufe in einem eigenen
    Terminal starten, damit der Nutzer sie sieht und mit `Strg+C` anhalten kann.
-5. Nach dem Lauf: Anzahl Zeilen in allen `part_*.parquet` und Einträge in `errors.csv` nennen.
+5. Nach dem Lauf: `python client\inspect_results.py` (README P5) zeigt Anzahl, Modell, Normen und
+   Fehler und öffnet eine Vorschau mit ähnlichen Bildern; mit `--server … --query "…"` auch eine
+   Textsuche.
 
 ## Code-Konventionen
 

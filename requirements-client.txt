@@ -2,3 +2,4 @@
 httpx>=0.27
 pyarrow>=17
 pillow>=10
+numpy>=1.26

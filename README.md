@@ -176,6 +176,17 @@ Ergebnis: `C:\AI_Seminar_Images\embeddings\part_*.parquet` mit den Spalten `sha2
 (0 = `original.png`, 1… = `p001.png` …), `embedding` (1024 × float32, L2-normiert), `model`, `dim`.
 Bilder, die der Server nicht lesen konnte, stehen in `errors.csv`.
 
+**P5 – Ergebnis anschauen**
+
+```powershell
+python client\inspect_results.py
+python client\inspect_results.py --server http://<TAILSCALE-IP-VON-C>:8080 --query "Logo auf blauem Hintergrund"
+```
+
+Zeigt eine Zusammenfassung (Anzahl, Modell, Normen, Fehler) und öffnet `preview.html` im Browser:
+zu einigen Bildern die ähnlichsten anderen Bilder und, mit `--query`, die besten Treffer für
+einen Suchtext. Die Seite zeigt die Bilder direkt aus dem lokalen Ordner und bleibt auf dem PC.
+
 ---
 
 ## Wichtig: nichts nachträglich ändern
